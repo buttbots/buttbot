@@ -15,8 +15,6 @@ float lenUP=300.0;
 float angs[2];
 float angleM1[1];
 float angleM2[1];
-//float elbowLeftIntersections[3];
-//float elbowRightIntersections[3];
 float pIntersect[4];
 const float pi = 3.14159265359;
 
