@@ -6,7 +6,7 @@ from threading import Thread
 from time import sleep, strftime
 from sys import exit, stdout
 import picamera
-import Tkinter as tkinter
+import Tkinter as tk
 import numpy as np
 
 
@@ -78,7 +78,7 @@ class GUI(object):
         self.resolution = resolution
         self.stream_resolution = stream_resolution
         self.running = False
-        self.master = tkinter.Tk()
+        self.master = tk.Tk()
         self.master.protocol("WM_DELETE_WINDOW", self.quit)
         self.main()
         self.master.mainloop()
@@ -86,11 +86,11 @@ class GUI(object):
     def main(self):
         self.master.geometry(self.resolution)
         self.master.title("picamera stream on tkinter")
-        self.startstop_button = tkinter.Button(master=self.master, text="Start", bg="green", command=self.startstop_stream)
+        self.startstop_button = tk.Button(master=self.master, text="Start", bg="green", command=self.startstop_stream)
         self.startstop_button.place(x=10, y=10, height=50, width=50)
-        self.stream_label = tkinter.Label(master=self.master)
+        self.stream_label = tk.Label(master=self.master)
         self.stream_label.place(x=60, y=10)
-        self.exit_button = tkinter.Button(master=self.master, bg="#229", fg="white", text="Exit", command=self.quit)
+        self.exit_button = tk.Button(master=self.master, bg="#229", fg="white", text="Exit", command=self.quit)
         self.exit_button.place(x=10, y=200, height=50, width=50)
 
     def startstop_stream(self):
@@ -137,12 +137,12 @@ def main():
     try:
 
         vs = PiVideoStream(resolution=stream_resolution, framerate=stream_framerate, led=picamera_led)
-        tkinter_app = GUI(videostream=vs, resolution="{0}x{1}".format(screen_width, screen_height), stream_resolution=stream_resolution)
+        tk_app = GUI(videostream=vs, resolution="{0}x{1}".format(screen_width, screen_height), stream_resolution=stream_resolution)
 
     except (KeyboardInterrupt, SystemExit):
         print('Quit')
         vs.quit()
-        tkinter_app.quit()
+        tk_app.quit()
     #except Exception, error:
        # print('Error: ' + str(error))
         #exit()
