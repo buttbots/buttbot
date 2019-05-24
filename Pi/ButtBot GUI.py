@@ -1,5 +1,13 @@
+from __future__ import print_function
 import tkinter as tk
 import serial
+from PIL import Image
+from PIL import ImageTk
+import threading
+import datetime
+import imutils
+import cv2
+import os
 
 """
 ------------------------------------------
@@ -78,5 +86,7 @@ button.place(anchor = "n", relx = 0.2, y = 115)
 
 root.mainloop()
 """
+---------------------------------------------------------------------------
 BUTTBOT GUI ENDE
+----------------------------------------------------------------------------
 """
