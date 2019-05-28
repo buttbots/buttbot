@@ -47,8 +47,8 @@ HEIGHT = 800
 WIDTH = 1600
 
 # get cam frames
-camheight = 800
-camwidth = 600
+camheight = 640
+camwidth = 480
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, camwidth)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, camheight)
