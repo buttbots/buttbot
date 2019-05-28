@@ -67,8 +67,11 @@ label = tk.Label(root, text = "BUTTBOT", bg = "#994d00", font =("IBM Plex",18))
 label.place(anchor = "n", height = 50, width = 200, relx = 0.5, rely = 0.01)
 
 # grey frame
+greyframeheight = HEIGHT*0.8
+greyframewidth = WIDTH*0.8
+
 cordframe = tk.Frame(root, bg = "#994d00")
-cordframe.place(relheight = 0.8, relwidth = 0.8, relx = 0.1, rely = 0.1)
+cordframe.place(height = int(greyframeheight), width = int(greyframewidth), relx = 0.1, rely = 0.1)
 
 # X-coordinate
 xCordLabel = tk.Label(cordframe, text = "X-Wert", bg = "#994d00")
@@ -95,7 +98,7 @@ button.place(anchor = "n", relx = 0.2, y = 115)
 
 # CAMSTREAM
 camlabel = tk.Label(cordframe)
-camlabel.place(anchor = "nw", height = 400, width = 600, x = 500, y = 10)
+camlabel.place(anchor = "nw", height = greyframeheight, width = greyframewidth/2, x = greyframewidth/2)
 
 def showframe():
 	_, frame = cap.read()
