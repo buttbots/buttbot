@@ -48,12 +48,14 @@ void receiv() {
 }
 
 float HomePos(){
+  //Bewegt den den Greifer in die Home-Position.
   float ZeroPosM1 = 176.8344;
   float ZeroPosM2 = 176.8344;
   writeAngles(ZeroPosM1, ZeroPosM2);
 }
 
 float UpdateMotor(){
+  //berechnet und schreibt die neuen Werte an die Motoren und bewegt anschließend den Greifer in die Ausgangsposition.
   getAngles();
   if(angs[0]>0){
     float AM1 = angs[0];
