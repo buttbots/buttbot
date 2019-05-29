@@ -21,6 +21,8 @@ void setup() {
   Serial.begin(9600);
   M1.attach(8);
   M2.attach(10);
+  HomePos();
+  delay(250);
   Serial.println("Eingabe: Befehl(Buchstabe),x,y;");
   Serial.println("x und y Wert der Zielkoordinate");
 }
@@ -45,6 +47,12 @@ void receiv() {
   }       
 }
 
+float HomePos(){
+  float ZeroPosM1 = 176.8344;
+  float ZeroPosM2 = 176.8344;
+  writeAngles(ZeroPosM1, ZeroPosM2);
+}
+
 float UpdateMotor(){
   getAngles();
   if(angs[0]>0){
@@ -53,6 +61,9 @@ float UpdateMotor(){
     writeAngles(AM1, AM2);
     angs[0]=0;
     angs[1]=0;
+    delay(250);
+    HomePos();
+    delay(250);
   }
 }
 
@@ -124,7 +135,6 @@ float getAngles(){
     return angs[2];
    }
 }
-
 
 float writeAngles(float aM1, float aM2){
   //Funktion zum schreiben von Winkelwerten auf die Servos.
