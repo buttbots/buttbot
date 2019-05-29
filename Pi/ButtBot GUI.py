@@ -202,12 +202,14 @@ shape = np.array([[0, 212.02022],
 [0.830975, 211.70305],
 [0, 212.02022]])
 
+
+
 def showframe():
 	_, frame = cap.read()
 	frame = cv2.flip(frame, 1)
-	#Polygon
-	cv2.polylines(result, np.int32([shape]), True, (0,0,255), thickness = 3)
-	scalingfactor = (212 - 9.447)/500
+	
+	
+	
 	#Transorfmation
 	cv2.circle(frame, (225,160), 3, (0,0,250), -1)
 	cv2.circle(frame, (390,160), 3, (0,0,250), -1)
@@ -217,7 +219,16 @@ def showframe():
 	pts2 = np.float32([[0,0],[402,0], [0,500],[402,500]])
 	matrix = cv2.getPerspectiveTransform(pts1, pts2)
 	result = cv2.warpPerspective(frame, matrix, (402,500))
+	
 
+	scalingfactor = (212 - 9.447)/500
+	scaleshape = shape / (scalingfactor) + np.array([[201,0]])
+	#Polygon
+	cv2.polylines(result, np.int32([scaleshape]), True, (0,0,255), thickness = 3)
+	
+
+	print(scaleshape)
+	
 	result = cv2.cvtColor(result, cv2.COLOR_BGR2RGBA)
 	img = PIL.Image.fromarray(result)
 	cam = ImageTk.PhotoImage(image=img)
