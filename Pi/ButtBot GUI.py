@@ -5,6 +5,7 @@ import numpy as np
 import PIL
 from PIL import Image,ImageTk
 import threading
+import time
 import datetime
 import pytesseract
 import imutils
@@ -34,39 +35,22 @@ shape = np.array([[0, 212.02022],[-0.830975, 211.70305],[-2.3010259, 211.12807],
 
 
 """
-------------------------------------------
+-------------------------------------------------------------------------------
 SERIELLE COMMUNICATION
-------------------------------------------
+-------------------------------------------------------------------------------
 """
-"""
-# Connection
-ser = serial.Serial(port='/dev/ttyACM0', baudrate = 9600)
-# Test serial connection
-s = [0]
-while True:
-	read_serial=ser.readline()            
-	s[0] = str(int (ser.readline(),16))
-	print(s[0])
-	print(read_serial)
-"""
-"""
-#For sending :
-while True:
-        ser.write(xCord.get(), yCord.get())
-        time.sleep(1)
-"""
-
+#ser = serial.Serial(port='COM9', baudrate = 9600)
 
 """
-------------------------------------------
+-------------------------------------------------------------------------------
 BUTTBOT GUI
-------------------------------------------
+-------------------------------------------------------------------------------
 """
 root = tk.Tk()
 root.resizable(height = False, width = False)
 
-HEIGHT = 800
-WIDTH = 1600
+HEIGHT = 720
+WIDTH = 1280
 
 # get cam frames
 camheight = 640
@@ -111,38 +95,37 @@ Y = tk.StringVar()
 yCord = tk.Entry(cordframe, bd = 1, bg = "gray", textvariable = Y)
 yCord.place(anchor = "n", relx = 0.2, y = 75)
 
-# "GO!" Button
-def getxy():
-    print(xCord.get(),yCord.get())
+# "GO!" Button should send the x and y-coordinates serial to the arduino
 
-button = tk.Button(cordframe, command = getxy, height = 1, width = 16, bg = "#995c00", activebackground = "#b36b00", activeforeground = "#ffffff", text = "Go!", cursor = "target")
+def send_coords():
+	time.sleep(1)
+	ser.write(b"m,%d,%d;" % (xCord.get(),yCord.get()))
+
+button = tk.Button(cordframe, command = send_coords, height = 1, width = 16, bg = "#995c00", activebackground = "#b36b00", activeforeground = "#ffffff", text = "Go!", cursor = "target")
 button.place(anchor = "n", relx = 0.2, y = 115)
 
+
+
 # CAMSTREAM
-camlabel = tk.Label(cordframe)
-camlabel.place(anchor = "nw", height = greyframeheight, width = greyframewidth/2, x = greyframewidth/2)
-
-
-
+# camlabel where the stream is shown
+camlabel = tk.Label(cordframe, bg = "black")
+camlabel.place(anchor = "nw", height = camheight, width = camwidth, x = greyframewidth/2 + 32)
 
 
 def showframe():
 	_, frame = cap.read()
 	frame = cv2.flip(frame, 1)
-	
 	# frame perspective tranformation to the trapez-points (result)
-	
 	pts1 = np.float32([[225,160],[390,160],[210,350],[430,350]])
 	pts2 = np.float32([[0,0],[402,0], [0,500],[402,500]])
 	matrix = cv2.getPerspectiveTransform(pts1, pts2)
 	result = cv2.warpPerspective(frame, matrix, (402,500))
-	
+	# scaling for polygon
 	scalingfactor = (212 - 9.447)/500
 	scaleshape = shape / (scalingfactor) + np.array([[201,0]])
-	#Polygon
+	# polygon
 	cv2.polylines(result, np.int32([scaleshape]), True, (0,0,255), thickness = 3)
-	print(scaleshape)
-	
+	# implement the stream in tkinter and the camlabel
 	result = cv2.cvtColor(result, cv2.COLOR_BGR2RGBA)
 	img = PIL.Image.fromarray(result)
 	cam = ImageTk.PhotoImage(image=img)
@@ -150,15 +133,19 @@ def showframe():
 	camlabel.configure(image=cam)
 	camlabel.after(10, showframe)
 
-	#cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
-	#img = PIL.Image.fromarray(cv2image)
-	#cam = ImageTk.PhotoImage(image=img)
-	#camlabel.cam = cam
-	#camlabel.configure(image=cam)
-	#camlabel.after(10, showframe)
-
-
 showframe()
+
+# mouseclick
+def click_coords(event):
+	clickedx = event.x
+	clickedy = event.y
+	print("clicked at", clickedx, clickedy)
+camlabel.bind("<Button-1>", click_coords)
+
+
+
+
+
 
 root.mainloop()
 """
