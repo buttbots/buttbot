@@ -49,6 +49,7 @@ BUTTBOT GUI
 root = tk.Tk()
 root.resizable(height = False, width = False)
 
+
 HEIGHT = 720
 WIDTH = 1280
 
@@ -59,7 +60,6 @@ cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, camwidth)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, camheight)
 
-
 # background
 canvas = tk.Canvas(root, height = HEIGHT, width = WIDTH)
 canvas.pack()
@@ -69,6 +69,7 @@ background = tk.Frame(root, bg = "#e67300" )
 background.place(relheight = 1, relwidth = 1)
 
 # BUTTBOT Label
+#buttbotimage = ImageTk.PhotoImage(Image.open(PATH))
 label = tk.Label(root, text = "BUTTBOT", bg = "#994d00", font =("IBM Plex",18))
 label.place(anchor = "n", height = 50, width = 200, relx = 0.5, rely = 0.01)
 
@@ -95,7 +96,7 @@ Y = tk.StringVar()
 yCord = tk.Entry(cordframe, bd = 1, bg = "gray", textvariable = Y)
 yCord.place(anchor = "n", relx = 0.2, y = 75)
 
-# "GO!" Button should send the x and y-coordinates serial to the arduino
+# the "GO!" Button sends the x and y-coordinates serial to the arduino
 
 def send_coords():
 	time.sleep(1)
@@ -133,13 +134,14 @@ def showframe():
 	camlabel.configure(image=cam)
 	camlabel.after(10, showframe)
 
-showframe()
+#showframe()
 
 # mouseclick
 def click_coords(event):
 	clickedx = event.x
 	clickedy = event.y
 	print("clicked at", clickedx, clickedy)
+
 camlabel.bind("<Button-1>", click_coords)
 
 
