@@ -81,29 +81,39 @@ cordframe = tk.Frame(root, bg = "#994d00")
 cordframe.place(height = int(greyframeheight), width = int(greyframewidth), relx = 0.1, rely = 0.1)
 
 # X-coordinate
-xCordLabel = tk.Label(cordframe, text = "X-Wert", bg = "#994d00")
-xCordLabel.place(anchor = "n", relx = 0.2, y = 5)
+xCordEntryLabel = tk.Label(cordframe, text = "X-Wert", bg = "#994d00")
+xCordEntryLabel.place(anchor = "n", relx = 0.1, y = 5)
 
 X = tk.StringVar()
-xCord = tk.Entry(cordframe, bd = 1, bg = "gray", textvariable = X)
-xCord.place(anchor = "n", relx = 0.2, y = 25)
+xCordEntry = tk.Entry(cordframe, bd = 1, bg = "gray", textvariable = X)
+xCordEntry.place(anchor = "n", relx = 0.1, y = 25)
 
 # Y-coordinate
-yCordLabel = tk.Label(cordframe, text = "Y-Wert", bg = "#994d00")
-yCordLabel.place(anchor = "n", relx = 0.2, y = 55)
+yCordEntryLabel = tk.Label(cordframe, text = "Y-Wert", bg = "#994d00")
+yCordEntryLabel.place(anchor = "n", relx = 0.1, y = 55)
 
 Y = tk.StringVar()
-yCord = tk.Entry(cordframe, bd = 1, bg = "gray", textvariable = Y)
-yCord.place(anchor = "n", relx = 0.2, y = 75)
+yCordEntry = tk.Entry(cordframe, bd = 1, bg = "gray", textvariable = Y)
+yCordEntry.place(anchor = "n", relx = 0.1, y = 75)
+
+# Coordlable
+coordframe = tk.Frame(cordframe, bg = "#ffb84d", relief = "groove")
+coordframe.place(anchor = "nw", height = 100, width = 200, y = 150)
+
+label1 = tk.Label(coordframe, text = "Eingestellte Koordinaten:")
+label1.place(anchor = "nw", relheight = 0.2, width = 200, x = 0, y = 0)
+
+xlabel = tk.Label(coordframe, text = X, font = 14)
+xlabel.place(anchor = "nw", relheight = 0.8, width = 200)
+
 
 # the "GO!" Button sends the x and y-coordinates serial to the arduino
-
 def send_coords():
 	time.sleep(1)
 	ser.write(b"m,%d,%d;" % (xCord.get(),yCord.get()))
 
 button = tk.Button(cordframe, command = send_coords, height = 1, width = 16, bg = "#995c00", activebackground = "#b36b00", activeforeground = "#ffffff", text = "Go!", cursor = "target")
-button.place(anchor = "n", relx = 0.2, y = 115)
+button.place(anchor = "nw", relx = 0.1, y = 115)
 
 
 
@@ -117,19 +127,14 @@ def showframe():
 	_, frame = cap.read()
 	frame = cv2.flip(frame, 1)
 	# frame perspective tranformation to the trapez-points (result)
-	cv2.circle(frame, (100,100), 3, [255,0,0], 3)
-	cv2.circle(frame, (100,100), 3, [255,0,0], 3)
-	cv2.circle(frame, (100,100), 3, [255,0,0], 3)
-	cv2.circle(frame, (100,100), 3, [255,0,0], 3)
-
-
+	cv2.circle(frame, (100,100), 3, [255,0,0], 5)
 	pts1 = np.float32([[225,160],[390,160],[210,350],[430,350]])
 	pts2 = np.float32([[0,0],[402,0], [0,500],[402,500]])
 	#matrix = cv2.getPerspectiveTransform(pts1, pts2)
-	#result = cv2.warpPerspective(frame, matrix, (640,480))
+	#result = cv2.warpPerspective(frame, matrix, (camwidth,camheight))
 	# scaling for polygon
-	scalingfactor = (212 - 9.447)/500
-	scaleshape = shape / (scalingfactor) + np.array([[201,0]])
+	#scalingfactor = (212 - 9.447)/500
+	#scaleshape = shape / (scalingfactor) + np.array([[201,0]])
 	# polygon
 	#cv2.polylines(result, np.int32([scaleshape]), True, (0,0,255), thickness = 3)
 	# implement the stream in tkinter and the camlabel
@@ -140,7 +145,7 @@ def showframe():
 	camlabel.configure(image=cam)
 	camlabel.after(10, showframe)
 
-#showframe()
+showframe()
 
 # mouseclick
 def click_coords(event):
