@@ -116,18 +116,24 @@ def showframe():
 	_, frame = cap.read()
 	frame = cv2.flip(frame, 1)
 	# frame perspective tranformation to the trapez-points (result)
+	cv2.circle(frame, (100,100), 3, [255,0,0], 3)
+	cv2.circle(frame, (100,100), 3, [255,0,0], 3)
+	cv2.circle(frame, (100,100), 3, [255,0,0], 3)
+	cv2.circle(frame, (100,100), 3, [255,0,0], 3)
+
+
 	pts1 = np.float32([[225,160],[390,160],[210,350],[430,350]])
 	pts2 = np.float32([[0,0],[402,0], [0,500],[402,500]])
-	matrix = cv2.getPerspectiveTransform(pts1, pts2)
-	result = cv2.warpPerspective(frame, matrix, (402,500))
+	#matrix = cv2.getPerspectiveTransform(pts1, pts2)
+	#result = cv2.warpPerspective(frame, matrix, (640,480))
 	# scaling for polygon
 	scalingfactor = (212 - 9.447)/500
 	scaleshape = shape / (scalingfactor) + np.array([[201,0]])
 	# polygon
-	cv2.polylines(result, np.int32([scaleshape]), True, (0,0,255), thickness = 3)
+	#cv2.polylines(result, np.int32([scaleshape]), True, (0,0,255), thickness = 3)
 	# implement the stream in tkinter and the camlabel
-	result = cv2.cvtColor(result, cv2.COLOR_BGR2RGBA)
-	img = PIL.Image.fromarray(result)
+	frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+	img = PIL.Image.fromarray(frame)
 	cam = ImageTk.PhotoImage(image=img)
 	camlabel.cam = cam
 	camlabel.configure(image=cam)
