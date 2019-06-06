@@ -39,19 +39,29 @@ shape = np.array([[0, 212.02022],[-0.830975, 211.70305],[-2.3010259, 211.12807],
 SERIELLE COMMUNICATION
 -------------------------------------------------------------------------------
 """
-#ser = serial.Serial(port='COM9', baudrate = 9600)
+#ser = serial.Serial(port='/dev/tty/AC0', baudrate = 9600)
+
 
 """
 -------------------------------------------------------------------------------
 BUTTBOT GUI
 -------------------------------------------------------------------------------
 """
+
+
+
 root = tk.Tk()
 root.resizable(height = False, width = False)
 
 
 HEIGHT = 720
 WIDTH = 1280
+
+XVar = tk.StringVar()
+YVar = tk.StringVar()
+
+XVar.set(0)
+YVar.set(0)
 
 # get cam frames
 camheight = 640
@@ -69,7 +79,8 @@ background = tk.Frame(root, bg = "#e67300" )
 background.place(relheight = 1, relwidth = 1)
 
 # BUTTBOT Label
-#buttbotimage = ImageTk.PhotoImage(Image.open(PATH))
+#logoimage = Image.open("Buttbotlogo.png")
+#buttbotimage = ImageTk.PhotoImage(logoimage)
 label = tk.Label(root, text = "BUTTBOT", bg = "#994d00", font =("IBM Plex",18))
 label.place(anchor = "n", height = 50, width = 200, relx = 0.5, rely = 0.01)
 
@@ -84,38 +95,25 @@ cordframe.place(height = int(greyframeheight), width = int(greyframewidth), relx
 xCordEntryLabel = tk.Label(cordframe, text = "X-Wert", bg = "#994d00")
 xCordEntryLabel.place(anchor = "n", relx = 0.1, y = 5)
 
-X = tk.StringVar()
-xCordEntry = tk.Entry(cordframe, bd = 1, bg = "gray", textvariable = X)
+xCordEntry = tk.Entry(cordframe, bd = 1, bg = "gray", textvariable = XVar)
 xCordEntry.place(anchor = "n", relx = 0.1, y = 25)
 
 # Y-coordinate
 yCordEntryLabel = tk.Label(cordframe, text = "Y-Wert", bg = "#994d00")
 yCordEntryLabel.place(anchor = "n", relx = 0.1, y = 55)
 
-Y = tk.StringVar()
-yCordEntry = tk.Entry(cordframe, bd = 1, bg = "gray", textvariable = Y)
+yCordEntry = tk.Entry(cordframe, bd = 1, bg = "gray", textvariable = YVar)
 yCordEntry.place(anchor = "n", relx = 0.1, y = 75)
 
-# Coordlable
-coordframe = tk.Frame(cordframe, bg = "#ffb84d", relief = "groove")
-coordframe.place(anchor = "nw", height = 100, width = 200, y = 150)
-
-label1 = tk.Label(coordframe, text = "Eingestellte Koordinaten:")
-label1.place(anchor = "nw", relheight = 0.2, width = 200, x = 0, y = 0)
-
-xlabel = tk.Label(coordframe, text = X, font = 14)
-xlabel.place(anchor = "nw", relheight = 0.8, width = 200)
-
-
-# the "GO!" Button sends the x and y-coordinates serial to the arduino
+# the "GO!" BUTTON sends the x and y-coordinates serial to the arduino
 def send_coords():
+	print("Sending (%s,%s)!" % (XVar.get(),YVar.get()))
 	time.sleep(1)
-	ser.write(b"m,%d,%d;" % (xCord.get(),yCord.get()))
+	ser.write(b"m,%d,%d;" % (XVar.get(),YVar.get()))
+
 
 button = tk.Button(cordframe, command = send_coords, height = 1, width = 16, bg = "#995c00", activebackground = "#b36b00", activeforeground = "#ffffff", text = "Go!", cursor = "target")
-button.place(anchor = "nw", relx = 0.1, y = 115)
-
-
+button.place(anchor = "n", relx = 0.1, y = 115)
 
 # CAMSTREAM
 # camlabel where the stream is shown
@@ -127,10 +125,9 @@ def showframe():
 	_, frame = cap.read()
 	frame = cv2.flip(frame, 1)
 	# frame perspective tranformation to the trapez-points (result)
-	cv2.circle(frame, (100,100), 3, [255,0,0], 5)
-	pts1 = np.float32([[225,160],[390,160],[210,350],[430,350]])
-	pts2 = np.float32([[0,0],[402,0], [0,500],[402,500]])
-	#matrix = cv2.getPerspectiveTransform(pts1, pts2)
+	pts1 = np.float32([[0,0],[402,0], [0,500],[402,500]])		#dst points
+	pts2 = np.float32([[0,0],[640,0],[0,480],[640,480]])		#src points
+	#matrix = cv2.getPerspectiveTransform(pts1, pts2)			# calculates the tranformation matrix
 	#result = cv2.warpPerspective(frame, matrix, (camwidth,camheight))
 	# scaling for polygon
 	#scalingfactor = (212 - 9.447)/500
@@ -149,14 +146,11 @@ showframe()
 
 # mouseclick
 def click_coords(event):
-	clickedx = event.x
-	clickedy = event.y
-	print("clicked at", clickedx, clickedy)
+	XVar.set(event.x)
+	YVar.set(event.y)
+	print("clicked at", XVar.get(), YVar.get())
 
 camlabel.bind("<Button-1>", click_coords)
-
-
-
 
 
 
