@@ -5,6 +5,7 @@ import numpy as np
 import PIL
 from PIL import Image,ImageTk
 import threading
+import time
 import datetime
 import pytesseract
 import imutils
@@ -34,39 +35,33 @@ shape = np.array([[0, 212.02022],[-0.830975, 211.70305],[-2.3010259, 211.12807],
 
 
 """
-------------------------------------------
+-------------------------------------------------------------------------------
 SERIELLE COMMUNICATION
-------------------------------------------
+-------------------------------------------------------------------------------
 """
-"""
-# Connection
-ser = serial.Serial(port='/dev/ttyACM0', baudrate = 9600)
-# Test serial connection
-s = [0]
-while True:
-	read_serial=ser.readline()            
-	s[0] = str(int (ser.readline(),16))
-	print(s[0])
-	print(read_serial)
-"""
-"""
-#For sending :
-while True:
-        ser.write(xCord.get(), yCord.get())
-        time.sleep(1)
-"""
+#ser = serial.Serial(port='/dev/tty/AC0', baudrate = 9600)
 
 
 """
-------------------------------------------
+-------------------------------------------------------------------------------
 BUTTBOT GUI
-------------------------------------------
+-------------------------------------------------------------------------------
 """
+
+
+
 root = tk.Tk()
 root.resizable(height = False, width = False)
 
-HEIGHT = 800
-WIDTH = 1600
+
+HEIGHT = 720
+WIDTH = 1280
+
+XVar = tk.StringVar()
+YVar = tk.StringVar()
+
+XVar.set(0)
+YVar.set(0)
 
 # get cam frames
 camheight = 640
@@ -74,7 +69,6 @@ camwidth = 480
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, camwidth)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, camheight)
-
 
 # background
 canvas = tk.Canvas(root, height = HEIGHT, width = WIDTH)
@@ -85,6 +79,8 @@ background = tk.Frame(root, bg = "#e67300" )
 background.place(relheight = 1, relwidth = 1)
 
 # BUTTBOT Label
+#logoimage = Image.open("Buttbotlogo.png")
+#buttbotimage = ImageTk.PhotoImage(logoimage)
 label = tk.Label(root, text = "BUTTBOT", bg = "#994d00", font =("IBM Plex",18))
 label.place(anchor = "n", height = 50, width = 200, relx = 0.5, rely = 0.01)
 
@@ -96,69 +92,67 @@ cordframe = tk.Frame(root, bg = "#994d00")
 cordframe.place(height = int(greyframeheight), width = int(greyframewidth), relx = 0.1, rely = 0.1)
 
 # X-coordinate
-xCordLabel = tk.Label(cordframe, text = "X-Wert", bg = "#994d00")
-xCordLabel.place(anchor = "n", relx = 0.2, y = 5)
+xCordEntryLabel = tk.Label(cordframe, text = "X-Wert", bg = "#994d00")
+xCordEntryLabel.place(anchor = "n", relx = 0.1, y = 5)
 
-X = tk.StringVar()
-xCord = tk.Entry(cordframe, bd = 1, bg = "gray", textvariable = X)
-xCord.place(anchor = "n", relx = 0.2, y = 25)
+xCordEntry = tk.Entry(cordframe, bd = 1, bg = "gray", textvariable = XVar)
+xCordEntry.place(anchor = "n", relx = 0.1, y = 25)
 
 # Y-coordinate
-yCordLabel = tk.Label(cordframe, text = "Y-Wert", bg = "#994d00")
-yCordLabel.place(anchor = "n", relx = 0.2, y = 55)
+yCordEntryLabel = tk.Label(cordframe, text = "Y-Wert", bg = "#994d00")
+yCordEntryLabel.place(anchor = "n", relx = 0.1, y = 55)
 
-Y = tk.StringVar()
-yCord = tk.Entry(cordframe, bd = 1, bg = "gray", textvariable = Y)
-yCord.place(anchor = "n", relx = 0.2, y = 75)
+yCordEntry = tk.Entry(cordframe, bd = 1, bg = "gray", textvariable = YVar)
+yCordEntry.place(anchor = "n", relx = 0.1, y = 75)
 
-# "GO!" Button
-def getxy():
-    print(xCord.get(),yCord.get())
+# the "GO!" BUTTON sends the x and y-coordinates serial to the arduino
+def send_coords():
+	print("Sending (%s,%s)!" % (XVar.get(),YVar.get()))
+	time.sleep(1)
+	ser.write(b"m,%d,%d;" % (XVar.get(),YVar.get()))
 
-button = tk.Button(cordframe, command = getxy, height = 1, width = 16, bg = "#995c00", activebackground = "#b36b00", activeforeground = "#ffffff", text = "Go!", cursor = "target")
-button.place(anchor = "n", relx = 0.2, y = 115)
+
+button = tk.Button(cordframe, command = send_coords, height = 1, width = 16, bg = "#995c00", activebackground = "#b36b00", activeforeground = "#ffffff", text = "Go!", cursor = "target")
+button.place(anchor = "n", relx = 0.1, y = 115)
 
 # CAMSTREAM
-camlabel = tk.Label(cordframe)
-camlabel.place(anchor = "nw", height = greyframeheight, width = greyframewidth/2, x = greyframewidth/2)
-
-
-
+# camlabel where the stream is shown
+camlabel = tk.Label(cordframe, bg = "black")
+camlabel.place(anchor = "nw", height = camheight, width = camwidth, x = greyframewidth/2 + 32)
 
 
 def showframe():
 	_, frame = cap.read()
 	frame = cv2.flip(frame, 1)
-	
 	# frame perspective tranformation to the trapez-points (result)
-	
-	pts1 = np.float32([[225,160],[390,160],[210,350],[430,350]])
-	pts2 = np.float32([[0,0],[402,0], [0,500],[402,500]])
-	matrix = cv2.getPerspectiveTransform(pts1, pts2)
-	result = cv2.warpPerspective(frame, matrix, (402,500))
-	
-	scalingfactor = (212 - 9.447)/500
-	scaleshape = shape / (scalingfactor) + np.array([[201,0]])
-	#Polygon
-	cv2.polylines(result, np.int32([scaleshape]), True, (0,0,255), thickness = 3)
-	print(scaleshape)
-	
-	result = cv2.cvtColor(result, cv2.COLOR_BGR2RGBA)
-	img = PIL.Image.fromarray(result)
+	pts1 = np.float32([[0,0],[402,0], [0,500],[402,500]])		#dst points
+	pts2 = np.float32([[0,0],[640,0],[0,480],[640,480]])		#src points
+	#matrix = cv2.getPerspectiveTransform(pts1, pts2)			# calculates the tranformation matrix
+	#result = cv2.warpPerspective(frame, matrix, (camwidth,camheight))
+	# scaling for polygon
+	#scalingfactor = (212 - 9.447)/500
+	#scaleshape = shape / (scalingfactor) + np.array([[201,0]])
+	# polygon
+	#cv2.polylines(result, np.int32([scaleshape]), True, (0,0,255), thickness = 3)
+	# implement the stream in tkinter and the camlabel
+	frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+	img = PIL.Image.fromarray(frame)
 	cam = ImageTk.PhotoImage(image=img)
 	camlabel.cam = cam
 	camlabel.configure(image=cam)
 	camlabel.after(10, showframe)
 
-	#cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
-	#img = PIL.Image.fromarray(cv2image)
-	#cam = ImageTk.PhotoImage(image=img)
-	#camlabel.cam = cam
-	#camlabel.configure(image=cam)
-	#camlabel.after(10, showframe)
-
-
 showframe()
+
+# mouseclick
+def click_coords(event):
+	XVar.set(event.x)
+	YVar.set(event.y)
+	print("clicked at", XVar.get(), YVar.get())
+
+camlabel.bind("<Button-1>", click_coords)
+
+
 
 root.mainloop()
 """
