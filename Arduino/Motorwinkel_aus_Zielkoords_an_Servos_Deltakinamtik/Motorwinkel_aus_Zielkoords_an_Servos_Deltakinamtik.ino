@@ -3,7 +3,8 @@
 //Der Buchstabe als Befehlsaufruf, die erste Zahl als x-Koordinate, die 2. Zahl als y-Koordinate
 //Die print Operationen werden im späteren Anwendungsfall nicht benötigt
 
-#include <Servo.h> 
+#include "Arduino.h"
+#include "AX12A.h"
 boolean newData = false;
 float xCoord;
 float yCoord;
@@ -14,14 +15,16 @@ float lenUP=150.0;
 float pIntersect[4];
 float angs[2];
 const float pi = 3.14159265359;
-Servo M1;
-Servo M2;
+
+#define DirectionPin  (10u)
+#define BaudRate      (1000000ul)
+#define IDM1            (9u)
+#define IDM2            (8u)
 
 void setup() {
   Serial.begin(9600);
-  M1.attach(8);
-  M2.attach(10);
-  HomePos();
+  ax12a.begin(BaudRate, DirectionPin, &Serial1);
+  //HomePos();
   delay(250);
   Serial.println("Eingabe: Befehl(Buchstabe),x,y;");
   Serial.println("x und y Wert der Zielkoordinate");
@@ -49,8 +52,8 @@ void receiv() {
 
 float HomePos(){
   //Bewegt den den Greifer in die Home-Position.
-  float ZeroPosM1 = 176.8344;
-  float ZeroPosM2 = 176.8344;
+  float ZeroPosM1 = 808.394752;
+  float ZeroPosM2 = 215.605248;
   writeAngles(ZeroPosM1, ZeroPosM2);
 }
 
@@ -64,7 +67,7 @@ float UpdateMotor(){
     angs[0]=0;
     angs[1]=0;
     delay(250);
-    HomePos();
+    //HomePos();
     delay(250);
   }
 }
@@ -114,6 +117,7 @@ float getAngles(){
    if (newData == true) {
 
     //Positionen von Punkten der Kinematik, um über den Tangens Winkelwerte zu berechnen, mit welchen dann der TCP an die gewünschte Stelle bewegt wird.
+    float AXaufloesung = (300/1024);
     //left motor
     float posM1[] = {(-lenD/2.0), 0.0};
     intersectCircles(xCoord,yCoord,lenUP,posM1[0],posM1[1],lenLO);
@@ -121,6 +125,10 @@ float getAngles(){
     //Winkel in RAD nach D.
     double angleM1 = atan2(leftElbow[1], leftElbow[0]);
     float angleM1D = ((angleM1*180)/pi);
+
+    //Umrechnung von Winkel in AX Winkel und der dazugehörigen Schrittposition.
+    float M1AXwinkel = angleM1D + 60;    
+    float M1schrittWert = M1AXwinkel / AXaufloesung;
     
     //right motor
     float posM2[] = {(lenD/2.0), 0.0};
@@ -131,17 +139,31 @@ float getAngles(){
     double angleM2 = pi-atan2(rightElbow[1], rightElbow[0]);
     float angleM2D = ((angleM2*180)/pi);
 
+    //Umrechnung von Winkel in AX Winkel und der dazugehörigen Schrittposition, mit dem Zusatz, dass der Winkel gespiegelt werden muss auf Grund des Aufbaus der mathematischen Berechnung.
+    float M2AXwinkeln;
+    float M2AXwert = angleM2D + 60;
+    float M2AXwinkel = M2AXwert - 150;
+    if (M2AXwinkel > 0) {
+      M2AXwinkeln = 150 - M2AXwinkel;
+    }
+    else{
+      M2AXwinkeln = 150 + M2AXwinkel;
+    }
+    float M2schrittWert = M2AXwinkeln / AXaufloesung;
+
     //Winkel der beiden Motoren.
-    angs[0] = angleM1D;
-    angs[1] = angleM2D;
+    angs[0] = M1schrittWert;
+    angs[1] = M2schrittWert;
     return angs[2];
    }
 }
 
 float writeAngles(float aM1, float aM2){
   //Funktion zum schreiben von Winkelwerten auf die Servos.
-  M1.write(aM1);
-  M2.write(aM2);
+  Serial.println(aM1);
+  Serial.println(aM2);
+//  ax12a.move(IDM1, aM1);
+//  ax12a.move(IDM2, aM2);
 }
 
 void showNewData() {
