@@ -108,7 +108,7 @@ yCordEntry.place(anchor = "n", relx = 0.1, y = 75)
 
 # the "GO!" BUTTON sends the x and y-coordinates serial to the arduino
 def send_coords():
-	print("Sending (%s,%s)!" % (XVar.get(),YVar.get()))
+	print("Sending (%s,%s)!" % (XVar.get(), YVar.get()))
 	time.sleep(1)
 	ser.write(b"m,%d,%d;" % (XVar.get(),YVar.get()))
 
@@ -147,9 +147,9 @@ showframe()
 
 # mouseclick
 def click_coords(event):
-	XVar.set(event.x)
-	YVar.set(event.y)
-	print("clicked at", int((int(XVar.get())-320)*0.2531), int((-int(YVar.get()))*0.4416)+212)
+    XVar.set(int((int(event.x)-320)*0.2531))
+    YVar.set(int((-int(event.y))*0.4416+212))
+    print("clicked at", XVar.get(), YVar.get())
 
 camlabel.bind("<Button-1>", click_coords)
 
