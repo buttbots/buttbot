@@ -47,6 +47,7 @@ SERIELLE COMMUNICATION
 BUTTBOT GUI
 -------------------------------------------------------------------------------
 """
+#sudo modprobe bcm2835-v4l2
 
 
 
@@ -64,8 +65,8 @@ XVar.set(0)
 YVar.set(0)
 
 # get cam frames
-camheight = 640
-camwidth = 480
+camheight = 480
+camwidth = 640
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, camwidth)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, camheight)
@@ -118,25 +119,25 @@ button.place(anchor = "n", relx = 0.1, y = 115)
 # CAMSTREAM
 # camlabel where the stream is shown
 camlabel = tk.Label(cordframe, bg = "black")
-camlabel.place(anchor = "nw", height = camheight, width = camwidth, x = greyframewidth/2 + 32)
+camlabel.place(anchor = "nw", height = camheight, width = camwidth, x = greyframewidth/3 + 44)
 
 
 def showframe():
 	_, frame = cap.read()
-	frame = cv2.flip(frame, 1)
+	frame = cv2.flip(frame, 1,)
 	# frame perspective tranformation to the trapez-points (result)
-	pts1 = np.float32([[0,0],[402,0], [0,500],[402,500]])		#dst points
+	pts1 = np.float32([[128,127],[517,116], [55,443],[617,430]])		#dst points
 	pts2 = np.float32([[0,0],[640,0],[0,480],[640,480]])		#src points
-	#matrix = cv2.getPerspectiveTransform(pts1, pts2)			# calculates the tranformation matrix
-	#result = cv2.warpPerspective(frame, matrix, (camwidth,camheight))
+	matrix = cv2.getPerspectiveTransform(pts1, pts2)			# calculates the tranformation matrix
+	result = cv2.warpPerspective(frame, matrix, (camwidth,camheight))
 	# scaling for polygon
 	#scalingfactor = (212 - 9.447)/500
 	#scaleshape = shape / (scalingfactor) + np.array([[201,0]])
 	# polygon
 	#cv2.polylines(result, np.int32([scaleshape]), True, (0,0,255), thickness = 3)
 	# implement the stream in tkinter and the camlabel
-	frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
-	img = PIL.Image.fromarray(frame)
+	result = cv2.cvtColor(result, cv2.COLOR_BGR2RGBA)
+	img = PIL.Image.fromarray(result)
 	cam = ImageTk.PhotoImage(image=img)
 	camlabel.cam = cam
 	camlabel.configure(image=cam)
@@ -148,7 +149,7 @@ showframe()
 def click_coords(event):
 	XVar.set(event.x)
 	YVar.set(event.y)
-	print("clicked at", XVar.get(), YVar.get())
+	print("clicked at", int((int(XVar.get())-320)*0.2531), int((-int(YVar.get()))*0.4416)+212)
 
 camlabel.bind("<Button-1>", click_coords)
 
