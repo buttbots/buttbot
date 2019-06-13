@@ -39,7 +39,7 @@ shape = np.array([[0, 212.02022],[-0.830975, 211.70305],[-2.3010259, 211.12807],
 SERIELLE COMMUNICATION
 -------------------------------------------------------------------------------
 """
-#ser = serial.Serial(port='/dev/tty/AC0', baudrate = 9600)
+ser = serial.Serial(port='/dev/ttyACM0', baudrate = 9600)
 
 
 """
@@ -110,7 +110,7 @@ yCordEntry.place(anchor = "n", relx = 0.1, y = 75)
 def send_coords():
 	print("Sending (%s,%s)!" % (XVar.get(), YVar.get()))
 	time.sleep(1)
-	ser.write(b"m,%d,%d;" % (XVar.get(),YVar.get()))
+	ser.write(b"m,%d,%d;" % (int(XVar.get()),int(YVar.get())))
 
 
 button = tk.Button(cordframe, command = send_coords, height = 1, width = 16, bg = "#995c00", activebackground = "#b36b00", activeforeground = "#ffffff", text = "Go!", cursor = "target")
