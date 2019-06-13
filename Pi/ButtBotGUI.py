@@ -121,7 +121,28 @@ button.place(anchor = "n", relx = 0.1, y = 115)
 camlabel = tk.Label(cordframe, bg = "black")
 camlabel.place(anchor = "nw", height = camheight, width = camwidth, x = greyframewidth/3 + 44)
 
+# scaling functions for the coordinate systems : 
+# take the new scale : 166x212 and devide by the old scale 640x480: 166/640= 0.2594 and 212/480= 0.4417
+# the addition and subtraction is for the right positioning 
+def scale_xcoord(x):
+	newx = x * 0.2594 - 83
+	return int(newx)
 
+def scale_ycoord(y):
+	newy = -y * 0.4417 + 212
+	return int(newy)
+
+def descale_xcoord(x):
+	oldx = x + 83 
+	oldx = oldx * 3.8554
+	return int(oldx)
+
+def descale_ycoord(y):
+	oldy = y - 212
+	oldy = oldy * -2.2642
+	return int(oldy)
+
+# Videostream
 def showframe():
 	_, frame = cap.read()
 	frame = cv2.flip(frame, 1,)
@@ -131,10 +152,10 @@ def showframe():
 	matrix = cv2.getPerspectiveTransform(pts1, pts2)			# calculates the tranformation matrix
 	result = cv2.warpPerspective(frame, matrix, (camwidth,camheight))
 	# scaling for polygon
-	#scalingfactor = (212 - 9.447)/500
-	#scaleshape = shape / (scalingfactor) + np.array([[201,0]])
+	#descaleshape = shape + np.array([83,-212])
+	#descaleshape = descaleshape * np.array([3.8553,-2.2642])
 	# polygon
-	#cv2.polylines(result, np.int32([scaleshape]), True, (0,0,255), thickness = 3)
+	#cv2.polylines(result, descaleshape, True, (0,0,255), thickness = 3)
 	# implement the stream in tkinter and the camlabel
 	result = cv2.cvtColor(result, cv2.COLOR_BGR2RGBA)
 	img = PIL.Image.fromarray(result)
@@ -145,11 +166,13 @@ def showframe():
 
 showframe()
 
+
+
 # mouseclick
 def click_coords(event):
-    XVar.set(int((int(event.x)-320)*0.2531))
-    YVar.set(int((-int(event.y))*0.4416+212))
-    print("clicked at", XVar.get(), YVar.get())
+	XVar.set(scale_xcoord(event.x))
+	YVar.set(scale_ycoord(event.y))
+	print("clicked at", XVar.get(), YVar.get())
 
 camlabel.bind("<Button-1>", click_coords)
 
