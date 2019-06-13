@@ -24,8 +24,12 @@ const float pi = 3.14159265359;
 void setup() {
   Serial.begin(9600);
   ax12a.begin(BaudRate, DirectionPin, &Serial1);
-  //HomePos();
+  ax12a.setMaxTorque(IDM1, 300);
+  ax12a.setMaxTorque(IDM2, 300);
+  newData = true;
+  HomePos();
   delay(250);
+  newData = false;
   Serial.println("Eingabe: Befehl(Buchstabe),x,y;");
   Serial.println("x und y Wert der Zielkoordinate");
 }
@@ -52,23 +56,25 @@ void receiv() {
 
 float HomePos(){
   //Bewegt den den Greifer in die Home-Position.
-  float ZeroPosM1 = 808.394752;
-  float ZeroPosM2 = 215.605248;
-  writeAngles(ZeroPosM1, ZeroPosM2);
+  float xZero = 0;
+  float yZero = 10;  
+  getAngles(xZero, yZero);
+
+
 }
 
 float UpdateMotor(){
   //berechnet und schreibt die neuen Werte an die Motoren und bewegt anschließend den Greifer in die Ausgangsposition.
-  getAngles();
+  getAngles(xCoord, yCoord);
   if(angs[0]>0){
     float AM1 = angs[0];
     float AM2 = angs[1];
     writeAngles(AM1, AM2);
     angs[0]=0;
     angs[1]=0;
-    delay(250);
-    //HomePos();
-    delay(250);
+    delay(1500);
+    HomePos();
+    delay(1500);
   }
 }
 
@@ -112,15 +118,15 @@ float intersectCircles(float x1, float y1, float r1, float x2, float y2, float r
    return pIntersect[0];
 }
 
-float getAngles(){
+float getAngles(int x, int y){
   //Funktion zum berechnen der Motorwinkel, um die Zielkoordinaten zu erreichen.
    if (newData == true) {
 
     //Positionen von Punkten der Kinematik, um über den Tangens Winkelwerte zu berechnen, mit welchen dann der TCP an die gewünschte Stelle bewegt wird.
-    float AXaufloesung = (300/1024);
+    float AXaufloesung = (300.0/1024.0);
     //left motor
     float posM1[] = {(-lenD/2.0), 0.0};
-    intersectCircles(xCoord,yCoord,lenUP,posM1[0],posM1[1],lenLO);
+    intersectCircles(x,y,lenUP,posM1[0],posM1[1],lenLO);
     float leftElbow[] = {(pIntersect[2] -posM1[0]), (pIntersect[3] -posM1[1])};
     //Winkel in RAD nach D.
     double angleM1 = atan2(leftElbow[1], leftElbow[0]);
@@ -132,12 +138,17 @@ float getAngles(){
     
     //right motor
     float posM2[] = {(lenD/2.0), 0.0};
-    intersectCircles(xCoord,yCoord,lenUP,posM2[0],posM2[1],lenLO);
+    intersectCircles(x,y,lenUP,posM2[0],posM2[1],lenLO);
     float rightElbow[] = {(pIntersect[0] -posM2[0]), (pIntersect[1] -posM2[1])};
 
     //Winkel in RAD nach D.
     double angleM2 = pi-atan2(rightElbow[1], rightElbow[0]);
     float angleM2D = ((angleM2*180)/pi);
+
+    //Schutz des Roboters, so dass die Kinematik keine falschen Winelwerte ansteuern kann.
+    if(angleM1D > 176.84 || angleM2D > 176.84 || angleM1D < 73.2 || angleM2D < 73.2){
+      return;
+    }
 
     //Umrechnung von Winkel in AX Winkel und der dazugehörigen Schrittposition, mit dem Zusatz, dass der Winkel gespiegelt werden muss auf Grund des Aufbaus der mathematischen Berechnung.
     float M2AXwinkeln;
@@ -147,7 +158,7 @@ float getAngles(){
       M2AXwinkeln = 150 - M2AXwinkel;
     }
     else{
-      M2AXwinkeln = 150 + M2AXwinkel;
+      M2AXwinkeln = 150 + (-1 * M2AXwinkel);
     }
     float M2schrittWert = M2AXwinkeln / AXaufloesung;
 
@@ -158,6 +169,26 @@ float getAngles(){
    }
 }
 
+float writeAngles(float aM1, float aM2){
+  //Funktion zum schreiben von Winkelwerten auf die Servos.
+//  Serial.println(aM1);
+//  Serial.println(aM2);
+//  Serial.println();
+  ax12a.move(IDM1, aM1);
+  ax12a.move(IDM2, aM2);
+}
+
+void showNewData() {
+  //Funktion zur Rückgabe der eingegebenen Werte.
+    if (newData == true) {
+      Serial.print("Input: ");
+      Serial.println(b);
+      Serial.println(xCoord);
+      Serial.println(yCoord);
+      Serial.println();
+      newData = false;
+    }
+}
 float writeAngles(float aM1, float aM2){
   //Funktion zum schreiben von Winkelwerten auf die Servos.
   Serial.println(aM1);
@@ -173,6 +204,7 @@ void showNewData() {
       Serial.println(b);
       Serial.println(xCoord);
       Serial.println(yCoord);
+      Serial.println();
       newData = false;
     }
 }
